@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Death By Running</title>
+<link rel="icon" href="mark.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Cinzel:wght@500;700&display=swap">
+<style>
+/* Layout: a single editorial scroll — ferryman hero, creed, the Friday workout, doubloons, merch, the crossing. Dark-first: lamp-black and cursed gold; parchment by day. */
+:root{
+  --bg:#0c0a07; --bg-2:#15110b; --plank:#1c160e; --plank-2:#241c11;
+  --fg:#e8dbb6; --fg-dim:#b9a985; --fg-mute:#8a7a5c;
+  --gold:#d9a83a; --gold-2:#f3cf6b; --gold-dim:#8f6d24; --gold-ink:#1a1206;
+  --blood:#c9262b; --blood-2:#e7484c; --rope:#6b4f26; --glow:rgba(243,207,107,.22);
+  --shadow:0 18px 50px rgba(0,0,0,.55);
+  --font-display:'Pirata One','Cinzel',Georgia,serif;
+  --font-body:'IM Fell English','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --font-sc:'IM Fell English SC','IM Fell English',Georgia,serif;
+  --font-num:'Cinzel','Trajan Pro',Georgia,serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#efe3c4; --bg-2:#e7d8b4; --plank:#f6ecd3; --plank-2:#ecdfbf;
+    --fg:#2a1d10; --fg-dim:#5c4a2e; --fg-mute:#8a7452;
+    --gold:#9c7220; --gold-2:#b98a2b; --gold-dim:#c7a65a; --gold-ink:#fff6dc;
+    --blood:#9e1b22; --blood-2:#c1262d; --rope:#9b7a44; --glow:rgba(156,114,32,.18);
+    --shadow:0 14px 36px rgba(60,40,10,.18);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#efe3c4; --bg-2:#e7d8b4; --plank:#f6ecd3; --plank-2:#ecdfbf;
+  --fg:#2a1d10; --fg-dim:#5c4a2e; --fg-mute:#8a7452;
+  --gold:#9c7220; --gold-2:#b98a2b; --gold-dim:#c7a65a; --gold-ink:#fff6dc;
+  --blood:#9e1b22; --blood-2:#c1262d; --rope:#9b7a44; --glow:rgba(156,114,32,.18);
+  --shadow:0 14px 36px rgba(60,40,10,.18);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:19px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(1100px 600px at 70% -5%, var(--glow), transparent 60%), radial-gradient(800px 500px at 0% 100%, rgba(201,38,43,.09), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 2px, transparent 2px 7px)}
+img{max-width:100%; height:auto; display:block}
+a{color:var(--gold-2)}
+h1,h2,h3{font-family:var(--font-display); font-weight:400; margin:0; line-height:1.02; letter-spacing:.02em; text-wrap:balance}
+.wrap{max-width:1080px; margin:0 auto; padding-block:0 70px; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px))}
+.eyebrow{font-family:var(--font-sc); font-size:.78rem; letter-spacing:.24em; text-transform:uppercase; color:var(--gold); margin:0 0 8px}
+.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold) 55%,var(--gold-dim)); -webkit-background-clip:text; background-clip:text; color:transparent}
+.sc{font-family:var(--font-sc); letter-spacing:.18em; text-transform:uppercase}
+.muted{color:var(--fg-dim)} .tiny{font-size:.82rem; color:var(--fg-mute)}
+p{margin:.5em 0; max-width:62ch}
+
+/* topbar */
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:14px; padding-block:16px 8px}
+.brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; min-width:0}
+.brand img{width:48px; height:48px; border-radius:50%; border:2px solid var(--gold-dim); box-shadow:0 0 0 3px var(--bg), 0 0 0 4px var(--rope)}
+.brand .t{font-family:var(--font-display); font-size:1.3rem; line-height:1}
+.brand .s{font-family:var(--font-sc); font-size:.7rem; letter-spacing:.22em; text-transform:uppercase; color:var(--blood-2)}
+.nav{display:flex; gap:4px; flex-wrap:wrap; align-items:center}
+.nav a{font-family:var(--font-sc); font-size:.76rem; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; color:var(--fg-dim); padding:7px 10px; border:1px solid transparent; border-radius:3px}
+.nav a:hover{color:var(--gold-2); border-color:var(--rope)}
+.brand .t{white-space:nowrap}
+@media (max-width:760px){ .nav a:not(.btn){display:none} .nav{flex-wrap:nowrap} }
+.btn{font-family:var(--font-sc); font-size:.95rem; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; display:inline-flex; align-items:center; gap:10px; border:1px solid var(--gold-dim); border-radius:4px; padding:13px 20px; background:linear-gradient(180deg,var(--gold-2),var(--gold) 60%,var(--gold-dim)); color:var(--gold-ink); box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 8px 22px rgba(0,0,0,.35); transition:transform .08s ease, filter .15s ease}
+.btn:hover{filter:brightness(1.06)} .btn:active{transform:translateY(1px)} .btn:focus-visible{outline:2px solid var(--gold-2); outline-offset:3px}
+.btn.ghost{background:transparent; color:var(--gold-2); box-shadow:none}
+.btn.sm{font-size:.76rem; padding:8px 12px}
+.iconbtn{background:transparent; border:1px solid var(--rope); color:var(--fg-dim); border-radius:50%; width:38px; height:38px; display:grid; place-items:center; cursor:pointer; flex:none}
+.iconbtn:hover{color:var(--gold-2); border-color:var(--gold-dim)}
+
+/* hero */
+.hero{display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; padding-block:30px 10px}
+.hero h1{font-size:clamp(3.4rem, 9vw, 7rem); letter-spacing:.03em}
+.hero .slogan{font-family:var(--font-sc); letter-spacing:.34em; text-transform:uppercase; color:var(--blood-2); font-size:clamp(.9rem, 2.4vw, 1.2rem); margin:10px 0 18px}
+.hero .lede{font-size:1.2rem; max-width:34ch}
+.facts{display:flex; gap:10px 22px; flex-wrap:wrap; margin:18px 0 24px; font-family:var(--font-sc); font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; color:var(--fg-dim)}
+.facts b{color:var(--gold-2); font-weight:400}
+.cta{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+.figure{position:relative; min-width:0}
+.figure::before{content:""; position:absolute; left:8%; top:22%; width:46%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, var(--glow), transparent 68%); filter:blur(14px); pointer-events:none}
+.figure img{position:relative; width:min(100%, 520px); margin:0 auto; filter:drop-shadow(0 24px 40px rgba(0,0,0,.55))}
+@media (max-width:760px){ .hero{grid-template-columns:1fr; gap:10px} .figure{order:-1} .figure img{width:min(78vw, 360px)} .hero .lede{max-width:none} }
+
+/* sections */
+section{margin-top:64px}
+.sechead{margin-bottom:18px}
+.sechead h2{font-size:clamp(2.2rem, 5vw, 3.2rem)}
+.rule{height:1px; background:linear-gradient(90deg, transparent, var(--rope), transparent); margin:54px 0 0}
+.plank{background:linear-gradient(180deg,var(--plank),var(--plank-2)); border:1px solid var(--rope); border-radius:6px; padding:22px; box-shadow:var(--shadow); position:relative}
+.plank::before{content:""; position:absolute; inset:5px; border:1px dashed color-mix(in srgb, var(--gold-dim) 55%, transparent); border-radius:3px; pointer-events:none}
+.plank>*{position:relative}
+.creed{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+.creed .c{padding:18px 18px 16px; border:1px solid var(--rope); border-radius:4px; background:color-mix(in srgb, var(--bg) 55%, var(--plank))}
+.creed .c .k{font-family:var(--font-sc); letter-spacing:.2em; text-transform:uppercase; font-size:.78rem; color:var(--blood-2)}
+.creed .c .v{font-family:var(--font-display); font-size:1.7rem; margin:6px 0 4px}
+@media (max-width:700px){ .creed{grid-template-columns:1fr} }
+.big{font-family:var(--font-display); font-size:clamp(1.6rem, 4.4vw, 2.4rem); line-height:1.15; max-width:26ch; text-wrap:balance}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:center}
+@media (max-width:760px){ .two{grid-template-columns:1fr} }
+.steps{display:grid; gap:10px; counter-reset:s}
+.steps .s{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start; padding:12px 14px; border:1px solid var(--rope); border-radius:4px; background:color-mix(in srgb, var(--bg) 55%, var(--plank))}
+.steps .s::before{counter-increment:s; content:counter(s); font-family:var(--font-num); font-weight:700; color:var(--gold-2); font-size:1.3rem; line-height:1.2; width:1.4em}
+.steps .s b{font-family:var(--font-display); font-weight:400; font-size:1.25rem; display:block}
+.points{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums}
+.points td{padding:9px 6px; border-bottom:1px solid color-mix(in srgb, var(--rope) 50%, transparent)}
+.points td:last-child{text-align:right; font-family:var(--font-num); font-weight:700; color:var(--gold-2); white-space:nowrap}
+.coinrow{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:center}
+.coinrow img{filter:drop-shadow(0 14px 22px rgba(0,0,0,.5))}
+
+/* merch */
+.merch{display:grid; grid-template-columns:repeat(12,1fr); gap:14px}
+.merch .m{position:relative; border:1px solid var(--rope); border-radius:6px; overflow:hidden; background:#060504; box-shadow:var(--shadow)}
+.merch .m img{width:100%; height:100%; object-fit:cover}
+.merch .m .cap{position:absolute; left:0; right:0; bottom:0; padding:10px 14px; font-family:var(--font-sc); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase; color:#e8dbb6; background:linear-gradient(180deg, transparent, rgba(0,0,0,.75))}
+.merch .front{grid-column:span 5; aspect-ratio:4/5} .merch .back{grid-column:span 7; aspect-ratio:4/5}
+.merch .chest{grid-column:span 4; aspect-ratio:1} .merch .detail{grid-column:span 8; aspect-ratio:2/1}
+@media (max-width:760px){ .merch .front,.merch .back,.merch .chest,.merch .detail{grid-column:span 12; aspect-ratio:auto} .merch .m img{height:auto} }
+.stamp{display:inline-block; font-family:var(--font-sc); letter-spacing:.22em; text-transform:uppercase; font-size:.8rem; color:var(--blood-2); border:2px solid var(--blood-2); border-radius:4px; padding:6px 12px; transform:rotate(-2deg)}
+
+footer{margin-top:70px; text-align:center; color:var(--fg-mute); font-size:.92rem}
+footer .hl{font-family:var(--font-sc); letter-spacing:.34em; text-transform:uppercase; color:var(--blood-2); font-size:.95rem}
+footer a{color:var(--gold-2)}
+@media (prefers-reduced-motion: no-preference){ .figure img{animation:float 6s ease-in-out infinite} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <a class="brand" href="#top"><img src="mark.webp" alt="Death By Running skull mark"><div><div class="t">Death By Running</div><div class="s">Hasta la Muerte</div></div></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#creed">Creed</a><a href="#friday">Fridays</a><a href="#doubloons">Doubloons</a><a href="/merch.html">Merch</a><a href="#ferryman">Ferryman</a>
+      <a class="btn sm" href="/ledger.html" target="_blank" rel="noopener">The Ledger</a>
+      <button class="iconbtn" id="themeBtn" aria-label="Switch between night and parchment" title="Night / parchment"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+    </nav>
+  </div>
+
+  <header class="hero" id="top">
+    <div>
+      <div class="eyebrow">A Friday speed club · Austin, Texas</div>
+      <h1 class="gold">Death By Running</h1>
+      <div class="slogan">Hasta la Muerte</div>
+      <p class="lede">Everybody out here is going to die. That's not a threat, it's the terms. The only question is what you do with the legs before then.</p>
+      <div class="facts"><span><b>Fridays</b> 6:30 AM</span><span><b>Yellowjacket Stadium</b> Austin</span><span><b>One</b> speed workout</span></div>
+      <div class="cta">
+        <a class="btn" href="/ledger.html" target="_blank" rel="noopener">Board the Ledger</a>
+        <a class="btn ghost" href="#friday">How Fridays work</a>
+      </div>
+    </div>
+    <div class="figure"><img src="ferryman.webp" alt="The Ferryman: a skeleton captain in a rose-crowned hat, lantern in hand, inviting you aboard" width="1122" height="1402"></div>
+  </header>
+
+  <div class="rule"></div>
+
+  <section id="creed">
+    <div class="sechead"><div class="eyebrow">The creed</div><h2>Hasta la muerte means three things here.</h2></div>
+    <div class="creed">
+      <div class="c"><div class="k">To the workout</div><div class="v">All the way.</div><p class="muted">Nothing left in the tank at the last rep.</p></div>
+      <div class="c"><div class="k">To each other</div><div class="v">Till the end.</div><p class="muted">We show up. Nobody gets left on the track.</p></div>
+      <div class="c"><div class="k">To death</div><div class="v">You're coming anyway.</div><p class="muted">We'll be running when you get here.</p></div>
+    </div>
+    <p style="margin-top:18px">The skeleton on the back of the hoodie isn't a warning. He's you, later, and he's still running. Grinning. Roses on his head, because the ending is what makes it beautiful. The clock is a witness, not a judge. The only question at the end is whether you emptied it.</p>
+  </section>
+
+  <section id="friday">
+    <div class="sechead"><div class="eyebrow">Fridays, 6:30 AM</div><h2>One workout. Pace groups. The last rep is a race.</h2></div>
+    <div class="two">
+      <div class="steps">
+        <div class="s"><div><b>Scan in at the gate</b><span class="muted">A captain opens the gate when we arrive. Scan the sign, tap your name, you're aboard. No app, no account.</span></div></div>
+        <div class="s"><div><b>Run with your boat</b><span class="muted">Three pace groups, each with a Reaper who holds the splits. Hit your splits three Fridays running and you move up a boat.</span></div></div>
+        <div class="s"><div><b>Outrun the Reaper</b><span class="muted">The last rep of every workout is a race against your captain. Beat them and it's written in the ledger.</span></div></div>
+        <div class="s"><div><b>Close the gate</b><span class="muted">We say it together before we leave. "Hasta" — "la muerte." Then go live your life.</span></div></div>
+      </div>
+      <div class="plank">
+        <div class="eyebrow">This week</div>
+        <div class="big">12 × 400m<br><span class="muted" style="font-family:var(--font-body); font-size:1.05rem; display:block; margin-top:8px">Yellowjacket Stadium · Friday 6:30 AM · first voyage of the club.</span></div>
+        <p class="tiny" style="margin-top:14px">Warm-up at 6:30, first rep goes off when the gate closes. Bring water and something to run in that you don't mind dying in.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="doubloons">
+    <div class="sechead"><div class="eyebrow">The chest</div><h2>Doubloons. Earned, never bought.</h2></div>
+    <div class="two">
+      <div>
+        <p>Every Friday writes coins into your pile. The pile is your ticket count. When the captain pays the Ferryman, one name crosses over and takes the prize; their pile goes back into the river, and everyone else keeps stacking.</p>
+        <table class="points">
+          <tr><td>Show up</td><td>+1</td></tr>
+          <tr><td>Finish the whole workout</td><td>+1</td></tr>
+          <tr><td>Hit your group's splits (Reaper's call)</td><td>+1</td></tr>
+          <tr><td>Outrun the Reaper on the last rep</td><td>+1</td></tr>
+          <tr><td>Move up a boat</td><td>+5</td></tr>
+          <tr><td>Bring a recruit who comes back</td><td>+3</td></tr>
+        </table>
+        <p class="tiny" style="margin-top:12px">Same points for every boat. The reward for getting faster is moving up, not a bigger coin.</p>
+      </div>
+      <div class="coinrow">
+        <img src="coin-front.webp" alt="Death By Running doubloon, front: the running skeleton in flames and roses" width="720" height="720">
+        <img src="coin-back.webp" alt="Death By Running doubloon, back: skull and crossbones over DBR" width="720" height="720">
+      </div>
+    </div>
+  </section>
+
+  <section id="merch">
+    <div class="sechead"><div class="eyebrow">The merch</div><h2>The Hoodie. <span class="stamp">Not for sale</span></h2></div>
+    <p>There's one way to get it: your name comes out of the chest. Not for members, not for the captains, not for money. That's what makes it exclusive.</p>
+    <p><a class="btn ghost sm" href="/merch.html">Everything up for grabs</a></p>
+    <div class="merch" style="margin-top:18px">
+      <div class="m front"><img src="hoodie-front.webp" alt="Black hoodie, front, with the DBR skull mark on the chest"><div class="cap">Front · DBR chest mark</div></div>
+      <div class="m back"><img src="hoodie-back.webp" alt="Black hoodie, back: the running skeleton in flames under DEATH BY RUNNING, HASTA LA MUERTE on a banner"><div class="cap">Back · Hasta la Muerte</div></div>
+      <div class="m chest"><img src="hoodie-chest.webp" alt="Close-up of the DBR skull mark with rose crown and flames"><div class="cap">The mark</div></div>
+      <div class="m detail"><img src="hoodie-detail.webp" alt="Close-up of the running skeleton artwork"><div class="cap">Detail · the runner</div></div>
+    </div>
+  </section>
+
+  <section id="ferryman">
+    <div class="two">
+      <div class="figure"><img src="doubloons.webp" alt="A stack of Death By Running doubloons" width="1254" height="1254" style="width:min(100%,460px)"></div>
+      <div>
+        <div class="eyebrow">The crossing</div>
+        <h2>Pay the Ferryman.</h2>
+        <p>Every so often, after the workout, the captain opens the chest. Every doubloon in it is one ticket. The Ferryman calls one name. That runner crosses over with the hoodie, and their pile goes back to the river. The rest of us keep stacking, which is to say: keep showing up.</p>
+        <p>The whole ledger is public. Who's aboard, who's holding tickets, who crossed. Open it on your phone; it remembers you after the first scan.</p>
+        <p style="margin-top:16px"><a class="btn" href="/ledger.html" target="_blank" rel="noopener">Open the Ferryman's Ledger</a></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="hl">Hasta la Muerte</div>
+    <p style="max-width:none">To the workout: all the way. To each other: till the end. To death: we'll be running when you get here.</p>
+    <p class="tiny">Death By Running · Fridays 6:30 AM · Yellowjacket Stadium, Austin, TX · <a href="/ledger.html" target="_blank" rel="noopener">The Ledger</a></p>
+  </footer>
+</div>
+<script>
+(() => {
+  const root = document.documentElement;
+  try { const t = localStorage.getItem('dbr.theme'); if (t) root.dataset.theme = t; } catch {}
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('dbr.theme', root.dataset.theme); } catch {}
+  });
+})();
+</script>
+
+</body>
+</html>

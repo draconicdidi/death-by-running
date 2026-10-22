@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Ferryman's Ledger</title>
+<meta name="description" content="Death By Running — check in, count your doubloons, pay the Ferryman.">
+<meta name="theme-color" content="#0c0a07">
+<link rel="icon" id="favicon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Cinzel:wght@500;700&display=swap">
+<style>
+/* Layout: one scrolling ledger — gate, chest, leaderboard, ferryman — plus a captain's deck behind a passphrase. Dark-first: lamp-black and cursed gold by night, aged parchment by day. */
+:root{
+  --bg:#0c0a07; --bg-2:#15110b; --plank:#1c160e; --plank-2:#241c11;
+  --fg:#e8dbb6; --fg-dim:#b9a985; --fg-mute:#8a7a5c;
+  --gold:#d9a83a; --gold-2:#f3cf6b; --gold-dim:#8f6d24; --gold-ink:#1a1206;
+  --blood:#c9262b; --blood-2:#e7484c; --rope:#6b4f26; --sea:#0b1a21; --sea-2:#123038;
+  --ok:#7fb06a; --warn:#d9a83a; --bad:#e7484c; --silver:#c9c2b0; --bronze:#c58a52;
+  --shadow:0 14px 40px rgba(0,0,0,.55);
+  --font-display:'Pirata One', 'Cinzel', 'Georgia', serif;
+  --font-body:'IM Fell English', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-sc:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --font-num:'Cinzel', 'Trajan Pro', Georgia, serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#efe3c4; --bg-2:#e7d8b4; --plank:#f6ecd3; --plank-2:#ecdfbf;
+    --fg:#2a1d10; --fg-dim:#5c4a2e; --fg-mute:#8a7452;
+    --gold:#9c7220; --gold-2:#b98a2b; --gold-dim:#c7a65a; --gold-ink:#fff6dc;
+    --blood:#9e1b22; --blood-2:#c1262d; --rope:#9b7a44; --sea:#d9ccab; --sea-2:#c9b88f;
+    --ok:#3f7a2e; --warn:#9c7220; --bad:#b0252b; --silver:#6f6a5c; --bronze:#8a5a2b;
+    --shadow:0 12px 30px rgba(60,40,10,.18);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#efe3c4; --bg-2:#e7d8b4; --plank:#f6ecd3; --plank-2:#ecdfbf;
+  --fg:#2a1d10; --fg-dim:#5c4a2e; --fg-mute:#8a7452;
+  --gold:#9c7220; --gold-2:#b98a2b; --gold-dim:#c7a65a; --gold-ink:#fff6dc;
+  --blood:#9e1b22; --blood-2:#c1262d; --rope:#9b7a44; --sea:#d9ccab; --sea-2:#c9b88f;
+  --ok:#3f7a2e; --warn:#9c7220; --bad:#b0252b; --silver:#6f6a5c; --bronze:#8a5a2b;
+  --shadow:0 12px 30px rgba(60,40,10,.18);
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{
+  margin:0; min-height:100%; background:var(--bg); color:var(--fg);
+  font-family:var(--font-body); font-size:18px; line-height:1.45;
+  background-image:
+    radial-gradient(1200px 600px at 50% -10%, rgba(217,168,58,.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 100%, rgba(201,38,43,.08), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 2px, transparent 2px 7px);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--gold-2)}
+.wrap{max-width:720px; margin:0 auto; padding-block:0 60px; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-display); font-weight:400; letter-spacing:.02em; margin:0; text-wrap:balance; line-height:1.05}
+.eyebrow{font-family:var(--font-sc); font-size:.78rem; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); margin:0 0 6px}
+.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold) 55%,var(--gold-dim)); -webkit-background-clip:text; background-clip:text; color:transparent}
+.num{font-family:var(--font-num); font-variant-numeric:tabular-nums lining-nums; font-weight:700}
+.muted{color:var(--fg-dim)} .small{font-size:.9rem} .tiny{font-size:.8rem; color:var(--fg-mute)}
+p{margin:.4em 0}
+
+/* top bar */
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-block:14px 6px}
+.brand{display:flex; align-items:center; gap:12px; min-width:0}
+.brand img{width:52px; height:52px; border-radius:50%; border:2px solid var(--gold-dim); box-shadow:0 0 0 3px var(--bg), 0 0 0 4px var(--rope); flex:none}
+.brand .t{font-family:var(--font-display); font-size:1.35rem; line-height:1; letter-spacing:.03em}
+.brand .s{font-family:var(--font-sc); font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold)}
+.iconbtn{background:transparent; border:1px solid var(--rope); color:var(--fg-dim); border-radius:50%; width:40px; height:40px; display:grid; place-items:center; cursor:pointer; flex:none}
+.iconbtn:hover,.iconbtn:focus-visible{color:var(--gold-2); border-color:var(--gold-dim); outline:none}
+.nav{display:flex; gap:6px; flex-wrap:wrap; padding-block:4px 12px}
+.nav a{font-family:var(--font-sc); font-size:.78rem; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; color:var(--fg-dim); padding:6px 10px; border:1px solid transparent; border-radius:3px}
+.nav a.on,.nav a:hover{color:var(--gold-2); border-color:var(--rope)}
+
+/* hero */
+.hero{text-align:center; padding-block:14px 10px}
+.hero h1{font-size:clamp(2.6rem, 11vw, 4.4rem); letter-spacing:.04em}
+.hero .slogan{font-family:var(--font-sc); letter-spacing:.3em; text-transform:uppercase; color:var(--blood-2); font-size:.95rem; margin-top:6px}
+.hero .mark{width:min(46vw,190px); height:auto; border-radius:50%; border:3px solid var(--gold-dim); box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--rope), var(--shadow); margin:8px auto 2px; display:block}
+
+/* planks / cards */
+.plank{background:linear-gradient(180deg,var(--plank),var(--plank-2)); border:1px solid var(--rope); border-radius:6px; padding:18px 18px 16px; box-shadow:var(--shadow); position:relative}
+.plank + .plank, section + section{margin-top:18px}
+.plank::before{content:""; position:absolute; inset:5px; border:1px dashed color-mix(in srgb, var(--gold-dim) 55%, transparent); border-radius:3px; pointer-events:none}
+.plank > *{position:relative}
+section{margin-top:26px}
+.sechead{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px}
+.sechead h2{font-size:1.9rem}
+.divider{display:flex; align-items:center; gap:12px; color:var(--gold-dim); margin:26px 0 6px}
+.divider::before,.divider::after{content:""; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--rope),transparent)}
+
+/* gate */
+.gate{display:grid; gap:12px}
+.gate-state{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.pill{display:inline-flex; align-items:center; gap:8px; font-family:var(--font-sc); font-size:.78rem; letter-spacing:.18em; text-transform:uppercase; padding:6px 12px; border-radius:999px; border:1px solid var(--rope); color:var(--fg-dim)}
+.pill .dot{width:9px; height:9px; border-radius:50%; background:var(--fg-mute); box-shadow:0 0 0 2px color-mix(in srgb, var(--fg-mute) 25%, transparent)}
+.pill.open{color:var(--ok); border-color:color-mix(in srgb, var(--ok) 55%, var(--rope))} .pill.open .dot{background:var(--ok); box-shadow:0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); animation:beat 1.6s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+.who{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.who .name{font-family:var(--font-display); font-size:1.5rem}
+.tag{font-family:var(--font-sc); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; border:1px solid var(--rope); border-radius:3px; padding:2px 7px; color:var(--fg-dim)}
+.btn{font-family:var(--font-sc); font-size:1rem; letter-spacing:.16em; text-transform:uppercase; border:1px solid var(--gold-dim); border-radius:4px; padding:12px 18px; cursor:pointer; background:linear-gradient(180deg,var(--gold-2),var(--gold) 60%,var(--gold-dim)); color:var(--gold-ink); box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 6px 18px rgba(0,0,0,.35); transition:transform .08s ease, filter .15s ease}
+.btn:hover{filter:brightness(1.06)} .btn:active{transform:translateY(1px)} .btn:focus-visible{outline:2px solid var(--gold-2); outline-offset:3px}
+.btn[disabled]{filter:grayscale(.7) brightness(.75); cursor:not-allowed; box-shadow:none}
+.btn.big{font-size:1.25rem; padding:18px 22px; width:100%}
+.btn.ghost{background:transparent; color:var(--gold-2); box-shadow:none}
+.btn.blood{background:linear-gradient(180deg,var(--blood-2),var(--blood)); color:#fff4e6; border-color:color-mix(in srgb, var(--blood) 70%, black)}
+.btn.sm{font-size:.78rem; padding:7px 11px; letter-spacing:.14em}
+.link{background:none; border:none; color:var(--gold-2); font:inherit; text-decoration:underline; cursor:pointer; padding:0}
+.stack{display:grid; gap:10px}
+.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+input[type=text],input[type=number],input[type=password],select,textarea{font:inherit; font-size:1rem; color:var(--fg); background:color-mix(in srgb, var(--bg) 70%, var(--plank)); border:1px solid var(--rope); border-radius:4px; padding:10px 12px; min-width:0; width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold-dim); outline-offset:1px}
+label.f{display:grid; gap:4px; font-family:var(--font-sc); font-size:.78rem; letter-spacing:.16em; text-transform:uppercase; color:var(--fg-dim); min-width:0}
+label.f > input, label.f > select{text-transform:none; letter-spacing:0; font-family:var(--font-body)}
+.roster{display:grid; gap:6px; max-height:300px; overflow:auto; border:1px solid var(--rope); border-radius:4px; padding:6px; background:color-mix(in srgb, var(--bg) 60%, var(--plank))}
+.roster button{text-align:left; font:inherit; color:var(--fg); background:transparent; border:1px solid transparent; border-radius:3px; padding:9px 10px; cursor:pointer; display:flex; justify-content:space-between; gap:8px}
+.roster button:hover,.roster button:focus-visible{border-color:var(--gold-dim); outline:none; background:color-mix(in srgb, var(--gold) 10%, transparent)}
+.note{border-left:3px solid var(--gold-dim); padding:6px 12px; color:var(--fg-dim); font-style:italic}
+.err{border-left:3px solid var(--bad); padding:6px 12px; color:var(--fg)}
+.okmsg{border-left:3px solid var(--ok); padding:6px 12px}
+
+/* chest */
+.chest{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.chest .cell{text-align:center; padding:12px 6px; border:1px solid var(--rope); border-radius:4px; background:color-mix(in srgb, var(--bg) 55%, var(--plank))}
+.chest .v{font-family:var(--font-num); font-size:clamp(1.7rem, 7vw, 2.4rem); font-weight:700; line-height:1.1}
+.chest .l{font-family:var(--font-sc); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--fg-dim)}
+@media (max-width:420px){ .chest{grid-template-columns:repeat(3,1fr); gap:6px} .chest .cell{padding:10px 4px} }
+
+/* leaderboard */
+.board{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums}
+.board th{font-family:var(--font-sc); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--fg-dim); text-align:left; padding:6px 8px; border-bottom:1px solid var(--rope); font-weight:400}
+.board td{padding:9px 8px; border-bottom:1px solid color-mix(in srgb, var(--rope) 45%, transparent); vertical-align:middle}
+.board td.r{text-align:right} .board th.r{text-align:right}
+.board tr.me td{background:color-mix(in srgb, var(--gold) 9%, transparent)}
+.board .rank{font-family:var(--font-num); font-weight:700; color:var(--fg-dim); width:2.2em}
+.board tr.top1 .rank{color:var(--gold-2)} .board tr.top2 .rank{color:var(--silver)} .board tr.top3 .rank{color:var(--bronze)}
+.board .nm{font-family:var(--font-display); font-size:1.25rem; letter-spacing:.02em}
+.board .grp{font-family:var(--font-sc); font-size:.75rem; letter-spacing:.08em; color:var(--fg-mute); display:block}
+.tag.plain{text-transform:none; letter-spacing:.06em; font-size:.8rem}
+.board .dbl{font-family:var(--font-num); font-weight:700; font-size:1.3rem; color:var(--gold-2); white-space:nowrap}
+.board .life{color:var(--fg-mute); font-size:.85rem; white-space:nowrap}
+.streak{display:inline-flex; align-items:center; gap:3px; color:var(--blood-2); font-family:var(--font-num); font-weight:700; white-space:nowrap}
+.streak svg{width:12px; height:14px}
+.coin-ico{width:18px; height:18px; vertical-align:-3px; margin-right:3px; border-radius:50%}
+.empty{padding:18px; text-align:center; color:var(--fg-dim); font-style:italic}
+
+/* ferryman */
+.ferry{display:grid; gap:12px}
+.scene-wrap{display:grid; place-items:center; padding:10px 0 0}
+.scene-img{width:min(70vw, 320px); height:auto; filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+.odds{display:grid; gap:6px}
+.odds .o{display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center; font-size:.95rem}
+.bar{height:6px; background:color-mix(in srgb, var(--rope) 40%, transparent); border-radius:3px; overflow:hidden; grid-column:1 / -1}
+.bar i{display:block; height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold-2))}
+.crossed{display:grid; gap:6px}
+.crossed .x{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:8px 10px; border:1px solid var(--rope); border-radius:4px}
+
+/* feed */
+.feed{display:grid; gap:4px}
+.feed .f{display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:baseline; padding:6px 4px; border-bottom:1px solid color-mix(in srgb, var(--rope) 40%, transparent); font-size:.95rem}
+.feed .amt{font-family:var(--font-num); font-weight:700; color:var(--gold-2)} .feed .amt.neg{color:var(--blood-2)}
+.feed .when{color:var(--fg-mute); font-size:.8rem; white-space:nowrap}
+
+/* captain */
+.tabs{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px}
+.tabs button{font-family:var(--font-sc); font-size:.78rem; letter-spacing:.16em; text-transform:uppercase; background:transparent; border:1px solid var(--rope); border-radius:3px; color:var(--fg-dim); padding:8px 12px; cursor:pointer}
+.tabs button.on{color:var(--gold-ink); background:var(--gold); border-color:var(--gold-dim)}
+.list{display:grid; gap:8px}
+.list .it{display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; padding:10px 12px; border:1px solid var(--rope); border-radius:4px; background:color-mix(in srgb, var(--bg) 55%, var(--plank))}
+.list .it .n{font-family:var(--font-display); font-size:1.2rem}
+.list .it .meta{color:var(--fg-mute); font-size:.8rem}
+.chk{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-sc); font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-dim); border:1px solid var(--rope); border-radius:3px; padding:6px 9px; cursor:pointer; user-select:none}
+.chk input{accent-color:var(--gold); margin:0; width:16px; height:16px}
+.chk.on{color:var(--gold-2); border-color:var(--gold-dim); background:color-mix(in srgb, var(--gold) 12%, transparent)}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px} .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+@media (max-width:460px){ .grid3{grid-template-columns:1fr 1fr} }
+.qrbox{display:grid; place-items:center; gap:10px; padding:16px; background:#fffaf0; border-radius:6px; color:#1a1206}
+.qrbox svg{width:min(80vw, 320px); height:auto}
+.qrbox .u{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.75rem; word-break:break-all; text-align:center; color:#5a4a2c}
+.toast{position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--plank); color:var(--fg); border:1px solid var(--gold-dim); border-radius:6px; padding:12px 16px; box-shadow:var(--shadow); max-width:min(92vw, 520px); z-index:50; font-size:.95rem}
+.toast.bad{border-color:var(--bad)}
+
+/* coin burst */
+.burst{position:fixed; inset:0; pointer-events:none; z-index:40; overflow:hidden}
+.burst .c{position:absolute; width:34px; height:34px; border-radius:50%; animation:fly 1.5s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes fly{0%{transform:translate(0,0) rotate(0) scale(.6); opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(720deg) scale(1); opacity:0}}
+.reveal{text-align:center; padding:14px 0}
+.reveal .nm{font-family:var(--font-display); font-size:clamp(2.2rem, 9vw, 3.4rem); color:var(--gold-2)}
+.spin{font-family:var(--font-display); font-size:2rem; text-align:center; min-height:2.6rem; color:var(--fg-dim)}
+.lantern{animation:sway 2.4s ease-in-out infinite; transform-origin:top center; display:inline-block}
+@keyframes sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+footer{margin-top:40px; text-align:center; color:var(--fg-mute); font-size:.9rem}
+footer .hl{font-family:var(--font-sc); letter-spacing:.3em; text-transform:uppercase; color:var(--blood-2)}
+@media (prefers-reduced-motion: reduce){ .pill.open .dot,.lantern,.burst .c{animation:none} .burst{display:none} }
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="gcoin" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#ffe39a"/><stop offset=".55" stop-color="#d9a83a"/><stop offset="1" stop-color="#7a5a1c"/></radialGradient>
+    <symbol id="coin" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="30" fill="url(#gcoin)" stroke="#5a4012" stroke-width="2"/>
+      <circle cx="32" cy="32" r="23" fill="none" stroke="#5a4012" stroke-width="1.5" stroke-dasharray="3 2.5"/>
+      <text x="32" y="38" text-anchor="middle" font-family="Pirata One, Georgia, serif" font-size="19" fill="#4a3310">DBR</text>
+    </symbol>
+    <symbol id="flame" viewBox="0 0 12 14"><path d="M6 0c1 3 4 4 4 8a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 1-2-1-4 0-7z" fill="currentColor"/></symbol>
+    <symbol id="anchor" viewBox="0 0 16 16"><path d="M8 1.5a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4zM7.2 5.4h1.6V13c2.2-.3 3.7-1.7 4.2-3.6l-1.3.4.9-2.3 2.2 1-1.2.4C13.1 11.9 10.9 14.6 8 14.6S2.9 11.9 2.4 8.9l-1.2-.4 2.2-1 .9 2.3-1.3-.4c.5 1.9 2 3.3 4.2 3.6V5.4z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <img data-mark alt="Death By Running mark" width="52" height="52">
+      <div><div class="t">Death By Running</div><div class="s">The Ferryman's Ledger</div></div>
+    </div>
+    <button class="iconbtn" id="themeBtn" aria-label="Switch between night and parchment" title="Night / parchment">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    </button>
+  </div>
+  <nav class="nav" aria-label="Sections">
+    <a href="#gate" data-nav="gate">Gate</a>
+    <a href="#chest" data-nav="chest">Chest</a>
+    <a href="#board" data-nav="board">Leaderboard</a>
+    <a href="#ferryman" data-nav="ferryman">Ferryman</a>
+    <a href="#captain" data-nav="captain">Captain</a>
+    <a href="/">Home</a>
+    <a href="/merch.html">Merch</a>
+  </nav>
+
+  <!-- ============ HOME ============ -->
+  <main id="home">
+    <div class="hero">
+      <img class="mark" data-mark alt="" width="190" height="190">
+      <h1 class="gold">Death By Running</h1>
+      <div class="slogan" id="slogan">Hasta la Muerte</div>
+    </div>
+
+    <section id="gate" class="plank gate" aria-live="polite">
+      <div class="gate-state">
+        <span class="pill" id="gatePill"><span class="dot"></span><span id="gateText">Reading the tide…</span></span>
+        <span class="tiny" id="gateMeta"></span>
+      </div>
+      <div id="checkinArea" class="stack"></div>
+    </section>
+
+    <section id="chest">
+      <div class="sechead"><div><div class="eyebrow">The Chest</div><h2>Doubloons in play</h2></div></div>
+      <div class="chest">
+        <div class="cell"><div class="v num gold" id="tPile">—</div><div class="l">doubloons</div></div>
+        <div class="cell"><div class="v num" id="tCrew">—</div><div class="l">crew</div></div>
+        <div class="cell"><div class="v num" id="tSessions">—</div><div class="l">voyages</div></div>
+      </div>
+      <p class="tiny" style="margin-top:8px">Show up +<span data-pt="checkin">1</span> · finish the whole workout +<span data-pt="finish">1</span> · hit your splits +<span data-pt="splits">1</span> · outrun the Reaper on the last rep +<span data-pt="reaper">1</span> · move up a group +<span data-pt="promotion">5</span> · bring a recruit who comes back +<span data-pt="recruit">3</span>.</p>
+    </section>
+
+    <section id="board">
+      <div class="sechead"><div><div class="eyebrow">The Ledger</div><h2>Leaderboard</h2></div><span class="tiny" id="boardMeta"></span></div>
+      <div class="plank" style="padding:8px 6px 4px">
+        <div style="overflow-x:auto"><table class="board" id="boardTable"><thead><tr><th>#</th><th>Runner</th><th class="r">Streak</th><th class="r">Doubloons</th></tr></thead><tbody></tbody></table></div>
+        <div class="empty" id="boardEmpty" hidden>The ledger is blank. The first voyage writes the first name.</div>
+      </div>
+    </section>
+
+    <section id="ferryman">
+      <div class="sechead"><div><div class="eyebrow">The Crossing</div><h2>Pay the Ferryman</h2></div></div>
+      <div class="plank ferry">
+        <div class="scene-wrap"><img class="scene-img" src="ferryman.webp" alt="The Ferryman: a skeleton captain in a rose-crowned hat, lantern in hand, inviting you aboard" width="1122" height="1402"></div>
+        <p>Every doubloon in your pile is one ticket. When a captain pays the Ferryman, one name crosses over and takes the prize — <strong id="prizeName">the hoodie</strong>. The winner's pile goes back into the river; everyone else keeps stacking.</p>
+        <div class="row"><span class="tag">Tickets in the chest: <span class="num" id="poolTotal">—</span></span><span class="tag" id="myOdds" hidden></span></div>
+        <div class="odds" id="oddsList"></div>
+        <div class="divider">Crossed over</div>
+        <div class="crossed" id="drawList"><div class="empty">No one has crossed yet.</div></div>
+      </div>
+    </section>
+
+    <section id="recent">
+      <div class="sechead"><div><div class="eyebrow">Ship's log</div><h2>Recent entries</h2></div></div>
+      <div class="plank"><div class="feed" id="feed"><div class="empty">Nothing written yet.</div></div></div>
+    </section>
+
+    <footer>
+      <div class="hl">Hasta la Muerte</div>
+      <p class="small">To the workout: all the way. To each other: till the end. To death: we'll be running when you get here.</p>
+      <p class="tiny">Fridays · Yellowjacket Stadium · 6:30 AM</p>
+    </footer>
+  </main>
+
+  <!-- ============ CAPTAIN ============ -->
+  <main id="captain" hidden>
+    <div class="hero" style="padding-top:4px"><div class="eyebrow">Captain's quarters</div><h2 style="font-size:2.4rem">The Helm</h2></div>
+    <div id="capLock" class="plank stack">
+      <p class="note">Captains only. The passphrase opens the gate, awards doubloons, and pays the Ferryman.</p>
+      <form id="capForm" class="stack" autocomplete="off">
+        <label class="f">Passphrase<input type="password" id="capPass" autocomplete="current-password" required></label>
+        <button class="btn" type="submit">Unlock the helm</button>
+        <div id="capErr" class="err" hidden></div>
+      </form>
+    </div>
+    <div id="capDeck" hidden>
+      <div class="row" style="justify-content:space-between; margin-bottom:10px">
+        <div class="tabs" role="tablist">
+          <button data-tab="gate" class="on">Gate</button><button data-tab="awards">Awards</button><button data-tab="crew">Crew</button><button data-tab="ferry">Ferryman</button><button data-tab="settings">Settings</button>
+        </div>
+        <button class="btn ghost sm" id="capLockBtn">Lock</button>
+      </div>
+
+      <div class="plank stack" data-pane="gate">
+        <div class="gate-state"><span class="pill" id="capGatePill"><span class="dot"></span><span id="capGateText">—</span></span><span class="tiny" id="capGateMeta"></span></div>
+        <label class="f">Today's workout<input type="text" id="workoutInput" placeholder="12 × 400m"></label>
+        <div class="row">
+          <button class="btn" id="openGateBtn">Open the gate</button>
+          <button class="btn ghost" id="closeGateBtn">Close the gate</button>
+          <button class="btn ghost sm" id="saveWorkoutBtn">Save workout text</button>
+        </div>
+        <p class="tiny">Open it when you arrive, close it after the warm-up. It closes itself after <span id="gateHoursTxt">3</span> hours. Check-ins and new sign-ons only count while it's open.</p>
+        <div class="divider">Aboard today</div>
+        <div class="list" id="todayList"><div class="empty">Nobody yet.</div></div>
+        <div class="divider">Check in a runner without a phone</div>
+        <div class="row"><select id="capCheckinSel" style="flex:1"></select><button class="btn sm" id="capCheckinBtn">Check in</button></div>
+      </div>
+
+      <div class="plank stack" data-pane="awards" hidden>
+        <div class="row" style="justify-content:space-between">
+          <label class="f" style="flex:1 1 240px">Voyage<select id="awardSession"></select></label>
+          <button class="btn ghost sm" id="allFinishBtn">Everyone finished</button>
+        </div>
+        <p class="tiny">Tick what each runner earned, then save. Finish = the whole workout. Splits = hit the group's pace, Reaper's call. Reaper = outran the captain on the last rep.</p>
+        <div class="list" id="awardList"><div class="empty">Nobody aboard for this voyage.</div></div>
+        <button class="btn big" id="saveAwardsBtn">Save awards</button>
+      </div>
+
+      <div class="plank stack" data-pane="crew" hidden>
+        <div class="divider">Sign on a runner</div>
+        <div class="grid2">
+          <label class="f">Name<input type="text" id="newName" placeholder="First name + initial"></label>
+          <label class="f">Group<select id="newGroup"></select></label>
+        </div>
+        <button class="btn sm" id="addMemberBtn">Add to the crew</button>
+        <div class="divider">The crew</div>
+        <input type="text" id="crewFilter" placeholder="Find a runner…">
+        <div class="list" id="crewList"></div>
+      </div>
+
+      <div class="plank stack" data-pane="ferry" hidden>
+        <div class="row"><span class="tag">Tickets in the chest: <span class="num" id="capPool">—</span></span><span class="tag">Crew holding tickets: <span class="num" id="capHolders">—</span></span></div>
+        <div class="odds" id="capOdds"></div>
+        <label class="f">Prize<input type="text" id="prizeInput" placeholder="The Hoodie"></label>
+        <div id="drawStage" class="stack">
+          <button class="btn big blood" id="drawBtn">Pay the Ferryman</button>
+          <div id="drawConfirm" class="stack" hidden>
+            <p class="note">One name crosses over, and their pile returns to the river. You can undo it from the history below if a hand slips.</p>
+            <div class="row"><button class="btn blood" id="drawGoBtn">Call the name</button><button class="btn ghost" id="drawNoBtn">Not yet</button></div>
+          </div>
+          <div id="drawAnim" hidden><div class="reveal"><div class="lantern" aria-hidden="true"><svg width="40" height="56" viewBox="0 0 40 56"><path d="M20 0v8" stroke="#d9a83a" stroke-width="3"/><rect x="8" y="8" width="24" height="36" rx="5" fill="#2a1d0b" stroke="#d9a83a" stroke-width="2"/><rect x="14" y="14" width="12" height="24" rx="2" fill="#f3cf6b"/><rect x="12" y="44" width="16" height="6" rx="2" fill="#d9a83a"/></svg></div><div class="spin" id="spinName">…</div></div></div>
+          <div id="drawResult" class="reveal" hidden></div>
+        </div>
+        <div class="divider">History</div>
+        <div class="crossed" id="capDraws"></div>
+      </div>
+
+      <div class="plank stack" data-pane="settings" hidden>
+        <div class="divider">Doubloons</div>
+        <div class="grid3">
+          <label class="f">Show up<input type="number" id="pt_checkin" min="0" max="50"></label>
+          <label class="f">Finish<input type="number" id="pt_finish" min="0" max="50"></label>
+          <label class="f">Splits<input type="number" id="pt_splits" min="0" max="50"></label>
+          <label class="f">Reaper<input type="number" id="pt_reaper" min="0" max="50"></label>
+          <label class="f">Promotion<input type="number" id="pt_promotion" min="0" max="50"></label>
+          <label class="f">Recruit<input type="number" id="pt_recruit" min="0" max="50"></label>
+        </div>
+        <div class="grid2">
+          <label class="f">Prize<input type="text" id="set_prize"></label>
+          <label class="f">Gate auto-closes after (hours)<input type="number" id="set_gate_hours" min="1" max="24"></label>
+        </div>
+        <div class="grid2">
+          <label class="f">Club name<input type="text" id="set_club"></label>
+          <label class="f">Slogan<input type="text" id="set_slogan"></label>
+        </div>
+        <button class="btn sm" id="saveSettingsBtn">Save</button>
+
+        <div class="divider">Pace groups</div>
+        <p class="tiny">Rank 1 is the fastest boat. Captains of each group are the Reapers.</p>
+        <div class="list" id="groupList"></div>
+        <div class="row"><button class="btn ghost sm" id="addGroupBtn">Add a group</button><button class="btn sm" id="saveGroupsBtn">Save groups</button></div>
+
+        <div class="divider">The track</div>
+        <p class="tiny" id="pinStatus">No pin set. Check-ins won't carry the "at the track" mark until you drop one.</p>
+        <div class="row">
+          <button class="btn sm" id="dropPinBtn">Drop anchor where I'm standing</button>
+          <label class="f" style="width:140px">Radius (m)<input type="number" id="set_radius" min="50" max="5000" step="50"></label>
+          <button class="btn ghost sm" id="clearPinBtn">Clear pin</button>
+        </div>
+
+        <div class="divider">The sign</div>
+        <div class="qrbox" id="qrbox"><svg role="img" aria-label="QR code that opens the Ferryman's Ledger" viewBox="0 0 328 328" class="segno"><path transform="scale(8)" class="qrline" stroke="#1a1206" d="M2 2.5h7m1 0h1m1 0h4m1 0h1m2 0h2m1 0h1m2 0h1m3 0h1m1 0h7m-37 1h1m5 0h1m1 0h1m2 0h1m1 0h2m3 0h1m2 0h1m1 0h2m1 0h2m2 0h1m5 0h1m-37 1h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h1m4 0h1m1 0h4m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-37 1h1m1 0h3m1 0h1m3 0h1m1 0h2m1 0h2m1 0h1m2 0h1m1 0h1m1 0h2m3 0h1m1 0h3m1 0h1m-37 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h2m1 0h2m3 0h2m6 0h1m1 0h3m1 0h1m-37 1h1m5 0h1m1 0h2m1 0h1m1 0h6m4 0h2m2 0h2m1 0h1m5 0h1m-37 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-29 1h1m2 0h1m1 0h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m-27 1h3m1 0h1m1 0h1m4 0h1m1 0h4m1 0h1m2 0h1m5 0h3m2 0h3m-36 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h3m2 0h1m1 0h1m2 0h5m2 0h1m2 0h1m-35 1h1m1 0h1m2 0h2m3 0h2m1 0h3m3 0h1m1 0h2m2 0h2m3 0h2m1 0h2m1 0h1m-37 1h1m4 0h1m1 0h4m3 0h2m4 0h3m1 0h1m1 0h1m1 0h1m1 0h3m2 0h1m-34 1h1m3 0h1m1 0h2m1 0h1m1 0h2m1 0h4m2 0h2m1 0h2m2 0h2m1 0h5m-36 1h3m3 0h1m2 0h1m1 0h1m1 0h1m4 0h3m2 0h2m2 0h2m1 0h1m1 0h3m-32 1h6m3 0h1m2 0h2m1 0h1m1 0h3m1 0h3m3 0h3m1 0h2m-37 1h1m3 0h1m5 0h6m2 0h3m6 0h6m2 0h2m-36 1h1m2 0h3m2 0h2m2 0h3m1 0h1m1 0h1m2 0h5m2 0h4m1 0h1m1 0h1m-36 1h3m1 0h1m1 0h1m3 0h3m3 0h6m1 0h1m3 0h2m1 0h1m-31 1h2m2 0h2m2 0h1m1 0h1m3 0h4m1 0h3m1 0h1m1 0h4m2 0h2m1 0h2m-36 1h5m2 0h1m3 0h1m1 0h1m2 0h3m4 0h1m2 0h4m-31 1h1m5 0h2m2 0h1m2 0h1m9 0h5m2 0h7m-37 1h1m1 0h1m2 0h1m5 0h5m1 0h5m3 0h1m5 0h1m2 0h1m-35 1h1m1 0h1m2 0h3m1 0h1m1 0h1m2 0h2m6 0h2m1 0h3m1 0h1m3 0h2m1 0h1m-37 1h2m3 0h1m3 0h1m3 0h5m2 0h1m1 0h4m4 0h2m-32 1h1m3 0h3m3 0h2m2 0h2m1 0h1m1 0h4m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-37 1h2m5 0h5m2 0h1m1 0h2m4 0h1m4 0h1m2 0h2m1 0h2m-35 1h1m1 0h5m1 0h3m2 0h1m2 0h3m2 0h4m1 0h2m2 0h1m2 0h1m1 0h2m-37 1h1m4 0h1m2 0h1m1 0h2m1 0h2m1 0h2m1 0h1m2 0h2m3 0h1m1 0h1m1 0h1m-32 1h1m1 0h1m3 0h2m1 0h1m1 0h2m1 0h2m1 0h3m3 0h1m1 0h8m1 0h2m-28 1h2m1 0h4m3 0h1m1 0h2m1 0h1m1 0h1m1 0h2m3 0h1m-33 1h7m2 0h1m1 0h3m2 0h1m1 0h1m2 0h1m6 0h1m1 0h1m1 0h2m1 0h2m-37 1h1m5 0h1m4 0h4m3 0h1m7 0h1m1 0h1m3 0h1m2 0h2m-37 1h1m1 0h3m1 0h1m1 0h1m2 0h1m3 0h1m1 0h2m2 0h2m2 0h8m1 0h3m-37 1h1m1 0h3m1 0h1m1 0h2m2 0h2m5 0h1m2 0h1m1 0h1m3 0h1m1 0h1m1 0h3m-35 1h1m1 0h3m1 0h1m1 0h1m2 0h6m2 0h4m2 0h2m1 0h2m1 0h1m1 0h1m2 0h1m-37 1h1m5 0h1m2 0h1m1 0h1m1 0h1m2 0h1m1 0h2m4 0h1m1 0h1m1 0h1m1 0h3m3 0h1m-37 1h7m4 0h2m2 0h4m1 0h3m1 0h3m6 0h4"/></svg><div class="u" id="qrUrl">https://deathbyrunning.com/ledger.html</div></div>
+        <div class="row"><button class="btn sm" id="copyLinkBtn">Copy link</button><button class="btn ghost sm" id="bigQrBtn">Show big for scanning</button></div>
+
+        <div class="divider">Passphrase</div>
+        <div class="grid2">
+          <label class="f">New passphrase<input type="password" id="newPass" autocomplete="new-password"></label>
+          <label class="f">Again<input type="password" id="newPass2" autocomplete="new-password"></label>
+        </div>
+        <button class="btn sm" id="savePassBtn">Change passphrase</button>
+
+        <div class="divider">Books</div>
+        <div class="row"><button class="btn ghost sm" id="exportBtn">Export CSV</button><button class="btn ghost sm" id="recountBtn">Recount totals from the ledger</button></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="bigQr" hidden style="position:fixed; inset:0; z-index:60; background:#fffaf0; display:grid; place-items:center; padding:20px">
+    <div style="text-align:center; color:#1a1206">
+      <div style="font-family:var(--font-display); font-size:2rem">Scan to board</div>
+      <div id="bigQrSvg" style="width:min(86vw,420px); margin:12px auto"></div>
+      <div style="font-family:var(--font-sc); letter-spacing:.2em; text-transform:uppercase; font-size:.9rem">Death By Running</div>
+      <button class="btn sm" id="bigQrClose" style="margin-top:16px">Close</button>
+    </div>
+  </div>
+</div>
+<div class="burst" id="burst" aria-hidden="true"></div>
+
+<script>
+(() => {
+'use strict';
+const SUPABASE_URL = 'https://hijuwfihzbhzqlrutbrh.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpanV3ZmloemJoenFscnV0YnJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MDMzOTMsImV4cCI6MjEwODI3OTM5M30.lcFLPvC6vhtJWdp521Hr-gwyXkXE-2l0Czv8YcgtrmY';
+const PUBLIC_URL = 'https://deathbyrunning.com/ledger.html';
+const MARK = 'data:image/webp;base64,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';
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+$$('img[data-mark]').forEach(i => i.src = MARK); $('#favicon').href = MARK;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const KINDS = {checkin:'showed up', finish:'finished the workout', splits:'hit the splits', reaper:'outran the Reaper', promotion:'moved up a boat', recruit:'brought a recruit', adjust:'captain\'s adjustment', ferryman:'paid the Ferryman', void:'voided'};
+const SAYS = ['The Ferryman marks your name.', 'One more coin for the crossing.', 'Hasta la muerte.', 'The dead keep good books.', 'Noted in the ledger. Now run.', 'The river remembers who showed up.', 'Another coin. Another morning you weren\'t promised.'];
+
+// ---------- storage ----------
+const store = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k){ try { localStorage.removeItem(k); } catch {} },
+};
+function deviceId(){
+  let d = store.get('dbr.device');
+  if (!d) { d = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2,'0')).join(''); store.set('dbr.device', d); }
+  return d;
+}
+let me = store.get('dbr.member');   // {id, name}
+let pass = null; try { pass = sessionStorage.getItem('dbr.pass'); } catch {}
+
+// ---------- theme ----------
+const root = document.documentElement;
+const savedTheme = store.get('dbr.theme'); if (savedTheme) root.dataset.theme = savedTheme;
+$('#themeBtn').addEventListener('click', () => {
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark'; store.set('dbr.theme', root.dataset.theme);
+});
+
+// ---------- api ----------
+async function rpc(fn, args = {}) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/dbr_' + fn, {
+    method: 'POST',
+    headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args),
+  });
+  const text = await r.text();
+  let data; try { data = JSON.parse(text); } catch { data = text; }
+  if (!r.ok) throw new Error((data && (data.message || data.hint || data.details)) || ('The ledger did not answer (' + r.status + ').'));
+  return data;
+}
+async function cap(fn, args = {}) {
+  if (!pass) { lockHelm(); throw new Error('Unlock the helm first.'); }
+  const res = await rpc(fn, Object.assign({ p_pass: pass }, args));
+  if (res && res.ok === false && /passphrase|locked|captain/i.test(res.error || '')) { lockHelm(res.error); }
+  return res;
+}
+
+// ---------- state ----------
+let S = null;          // last get_state
+let pollTimer = null;
+const fmtTime = iso => iso ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }).format(new Date(iso)) : '';
+const fmtDate = (d, opts) => d ? new Intl.DateTimeFormat('en-US', Object.assign({ timeZone: 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric' }, opts || {})).format(typeof d === 'string' && d.length === 10 ? new Date(d + 'T12:00:00-05:00') : new Date(d)) : '';
+const groupName = id => (S && S.groups.find(g => g.id === id) || {}).name || '';
+
+async function refresh() {
+  try {
+    S = await rpc('get_state');
+    render();
+  } catch (e) {
+    toast(e.message, true);
+    if (!S || !S.club) {
+      S = null;
+      $('#gateText').textContent = 'The ledger is out of reach';
+      $('#gateMeta').textContent = 'Check your signal.';
+      $('#checkinArea').innerHTML = '<button class="btn ghost" id="retryBtn">Try again</button>';
+      $('#retryBtn').addEventListener('click', refresh);
+    }
+  }
+}
+function schedulePoll(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(() => { if (document.visibilityState === 'visible') refresh(); }, 20000);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
+
+// ---------- render: home ----------
+function render() {
+  if (!S) return;
+  $('#slogan').textContent = S.club.slogan || 'Hasta la Muerte';
+  $('#prizeName').textContent = S.club.draw_prize || 'the hoodie';
+  for (const k in S.club.points) { $$('[data-pt="' + k + '"]').forEach(el => el.textContent = S.club.points[k]); }
+  renderGate(); renderChest(); renderBoard(); renderFerry(); renderFeed();
+  if (pass) renderCaptain();
+}
+
+function renderGate() {
+  const ses = S.session, open = !!(ses && ses.open);
+  const pill = $('#gatePill'); pill.classList.toggle('open', open);
+  $('#gateText').textContent = open ? 'The gate is open' : 'The gate is closed';
+  $('#gateMeta').textContent = open
+    ? ((ses.workout ? ses.workout + ' · ' : '') + ses.count + ' aboard')
+    : (ses && ses.id === S.today ? ((ses.workout ? ses.workout + ' · ' : '') + ses.count + ' ran today') : 'Opens at the track when a captain says so.');
+  const area = $('#checkinArea');
+  const known = me && S.members.find(m => m.id === me.id);
+  if (me && !known) { me = null; store.del('dbr.member'); }
+  if (known) {
+    me.name = known.name;
+    area.innerHTML = `
+      <div class="who"><span class="muted">Aboard as</span><span class="name">${esc(known.name)}</span>${known.group_id ? `<span class="tag plain">${esc(groupName(known.group_id))}</span>` : ''}
+        <button class="link small" id="switchBtn">not you?</button></div>
+      ${known.checked_in_today
+        ? `<div class="okmsg">Checked in today${known.at_track_today ? ' <svg class="coin-ico" style="color:var(--ok)"><use href="#anchor"/></svg>at the track' : ''}. Pile: <strong class="num">${known.doubloons}</strong> · streak <span class="streak"><svg><use href="#flame"/></svg>${known.streak}</span></div>`
+        : `<button class="btn big" id="checkinBtn" ${open ? '' : 'disabled'}>${open ? 'Check in' : 'Gate closed'}</button>
+           <p class="tiny">Pile: <strong>${known.doubloons}</strong> doubloons · streak ${known.streak}.${S.club.pin_set ? ' Location is optional; it only adds the “at the track” mark.' : ''}</p>`}
+      <div id="ciMsg"></div>`;
+    $('#switchBtn').addEventListener('click', () => { me = null; store.del('dbr.member'); renderGate(); });
+    const b = $('#checkinBtn'); if (b) b.addEventListener('click', doCheckin);
+  } else {
+    area.innerHTML = `
+      <div class="eyebrow">Who's running?</div>
+      <input type="text" id="rosterFind" placeholder="Find your name…" autocomplete="off">
+      <div class="roster" id="roster"></div>
+      <div class="row"><span class="muted">New here?</span><button class="link" id="newBtn">Sign on</button></div>
+      <form id="signon" class="stack" hidden>
+        <div class="grid2">
+          <label class="f">Your name<input type="text" id="soName" placeholder="First name + initial" required maxlength="40"></label>
+          <label class="f">Pace group<select id="soGroup"><option value="">Not sure yet</option>${S.groups.map(g => `<option value="${g.id}">${esc(g.name)}${g.split_seconds ? ' · ' + g.split_seconds + 's/400' : ''}</option>`).join('')}</select></label>
+        </div>
+        <button class="btn" type="submit" ${open ? '' : 'disabled'}>${open ? 'Sign on & check in' : 'Sign-ons open at the track'}</button>
+        <p class="tiny">Your phone remembers you after this. No account, no app.</p>
+      </form>
+      <div id="ciMsg"></div>`;
+    const list = $('#roster'), find = $('#rosterFind');
+    const draw = () => {
+      const q = find.value.trim().toLowerCase();
+      const rows = S.members.filter(m => !q || m.name.toLowerCase().includes(q)).slice(0, 60);
+      list.innerHTML = rows.length ? rows.map(m => `<button type="button" data-id="${m.id}"><span>${esc(m.name)}</span><span class="tiny">${esc(groupName(m.group_id))}</span></button>`).join('') : '<div class="empty">No one by that name. Sign on below.</div>';
+    };
+    draw(); find.addEventListener('input', draw);
+    list.addEventListener('click', e => {
+      const b = e.target.closest('button[data-id]'); if (!b) return;
+      const m = S.members.find(x => x.id === b.dataset.id); if (!m) return;
+      me = { id: m.id, name: m.name }; store.set('dbr.member', me); renderGate();
+      if (open && !m.checked_in_today) doCheckin();
+    });
+    $('#newBtn').addEventListener('click', () => { $('#signon').hidden = false; $('#soName').focus(); });
+    $('#signon').addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+      try {
+        const res = await rpc('register_member', { p_name: $('#soName').value, p_group_id: $('#soGroup').value ? +$('#soGroup').value : null, p_device: deviceId() });
+        if (!res.ok) { msg(res.error, true); btn.disabled = false; return; }
+        me = { id: res.member.id, name: res.member.name }; store.set('dbr.member', me);
+        await doCheckin();
+      } catch (err) { msg(err.message, true); btn.disabled = false; }
+    });
+  }
+}
+function msg(text, bad) { const el = $('#ciMsg'); if (!el) return; el.innerHTML = text ? `<div class="${bad ? 'err' : 'okmsg'}">${esc(text)}</div>` : ''; }
+
+function getPosition() {
+  return new Promise(resolve => {
+    if (!S.club.pin_set || !navigator.geolocation) return resolve(null);
+    const t = setTimeout(() => resolve(null), 7000);
+    navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); resolve({ lat: p.coords.latitude, lng: p.coords.longitude }); }, () => { clearTimeout(t); resolve(null); }, { enableHighAccuracy: true, timeout: 6500, maximumAge: 60000 });
+  });
+}
+async function doCheckin() {
+  if (!me) return;
+  const b = $('#checkinBtn'); if (b) { b.disabled = true; b.textContent = 'Marking the ledger…'; }
+  try {
+    const pos = await getPosition();
+    const res = await rpc('check_in', { p_member: me.id, p_device: deviceId(), p_lat: pos ? pos.lat : null, p_lng: pos ? pos.lng : null });
+    if (!res.ok) {
+      if (res.code === 'unknown_member') { me = null; store.del('dbr.member'); }
+      await refresh(); msg(res.error, true); return;
+    }
+    if (res.already) { await refresh(); msg('Already aboard today. Pile: ' + res.doubloons + '.'); return; }
+    coinBurst(res.awarded);
+    await refresh();
+    msg('+' + res.awarded + ' doubloon' + (res.awarded === 1 ? '' : 's') + '. ' + SAYS[Math.floor(Math.random() * SAYS.length)] + (res.at_track === true ? ' Marked at the track.' : ''));
+  } catch (e) { msg(e.message, true); if (b) { b.disabled = false; b.textContent = 'Check in'; } }
+}
+function coinBurst(n) {
+  const host = $('#burst'); const count = Math.min(18, 8 + 4 * (n || 1));
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('img'); c.className = 'c'; c.src = 'coin-front.webp'; c.alt = '';
+    c.style.left = (45 + Math.random() * 10) + 'vw'; c.style.top = '58vh';
+    c.style.setProperty('--dx', (Math.random() * 2 - 1) * 45 + 'vw'); c.style.setProperty('--dy', (-30 - Math.random() * 40) + 'vh');
+    c.style.animationDelay = (Math.random() * .25) + 's';
+    host.appendChild(c); setTimeout(() => c.remove(), 1900);
+  }
+}
+
+function renderChest() {
+  $('#tPile').textContent = S.totals.pile; $('#tCrew').textContent = S.totals.members; $('#tSessions').textContent = S.totals.sessions;
+}
+function renderBoard() {
+  const tb = $('#boardTable tbody'); const rows = S.members;
+  $('#boardEmpty').hidden = rows.length > 0; $('#boardTable').hidden = rows.length === 0;
+  $('#boardMeta').textContent = rows.length ? rows.length + ' on the ledger' : '';
+  tb.innerHTML = rows.map((m, i) => `<tr class="${me && m.id === me.id ? 'me ' : ''}${i < 3 ? 'top' + (i + 1) : ''}">
+    <td class="rank">${i + 1}</td>
+    <td><span class="nm">${esc(m.name)}</span>${m.checked_in_today ? ' <svg class="coin-ico" style="color:var(--ok)" aria-label="aboard today"><use href="#anchor"/></svg>' : ''}<span class="grp">${esc(groupName(m.group_id) || '—')}</span></td>
+    <td class="r">${m.streak > 0 ? `<span class="streak"><svg><use href="#flame"/></svg>${m.streak}</span>` : '<span class="muted">—</span>'}</td>
+    <td class="r"><span class="dbl"><img class="coin-ico" src="coin-front.webp" alt="">${m.doubloons}</span><br><span class="life">${m.lifetime} lifetime</span></td>
+  </tr>`).join('');
+}
+function oddsHtml(members, limit) {
+  const total = members.reduce((a, m) => a + Math.max(0, m.doubloons), 0);
+  const holders = members.filter(m => m.doubloons > 0);
+  if (!total) return '<div class="empty">The chest is empty. Show up Friday.</div>';
+  return holders.slice(0, limit).map(m => `<div class="o"><span>${esc(m.name)}</span><span class="num">${m.doubloons}</span><span class="muted">${(100 * m.doubloons / total).toFixed(m.doubloons / total < .1 ? 1 : 0)}%</span><div class="bar"><i style="width:${(100 * m.doubloons / total).toFixed(1)}%"></i></div></div>`).join('')
+    + (holders.length > limit ? `<div class="tiny">…and ${holders.length - limit} more holding tickets.</div>` : '');
+}
+function renderFerry() {
+  const total = S.totals.pile;
+  $('#poolTotal').textContent = total;
+  const mo = $('#myOdds'); const mine = me && S.members.find(m => m.id === me.id);
+  if (mine && total > 0) { mo.hidden = false; mo.textContent = 'Your odds: ' + (100 * mine.doubloons / total).toFixed(mine.doubloons / total < .1 ? 1 : 0) + '%'; } else mo.hidden = true;
+  $('#oddsList').innerHTML = oddsHtml(S.members, 8);
+  const draws = S.draws.filter(d => !d.undone);
+  $('#drawList').innerHTML = draws.length ? draws.map(d => `<div class="x"><span><strong>${esc(d.winner_name)}</strong> took <em>${esc(d.prize)}</em></span><span class="tiny">${fmtDate(d.at)} · ${d.winner_tickets} of ${d.total_tickets} tickets</span></div>`).join('') : '<div class="empty">No one has crossed yet.</div>';
+}
+function renderFeed() {
+  const f = S.feed;
+  $('#feed').innerHTML = f.length ? f.slice(0, 14).map(l => `<div class="f"><span class="amt ${l.amount < 0 ? 'neg' : ''}">${l.amount > 0 ? '+' : ''}${l.amount}</span><span><strong>${esc(l.name)}</strong> ${esc(KINDS[l.kind] || l.kind)}${l.note ? ' <span class="tiny">(' + esc(l.note) + ')</span>' : ''}</span><span class="when">${fmtDate(l.at)}</span></div>`).join('') : '<div class="empty">Nothing written yet.</div>';
+}
+
+// ---------- routing ----------
+function route() {
+  const h = (location.hash || '#gate').replace('#', '');
+  const isCap = h === 'captain';
+  $('#home').hidden = isCap; $('#captain').hidden = !isCap;
+  $$('.nav a').forEach(a => a.classList.toggle('on', a.dataset.nav === h || (!isCap && h === 'gate' && a.dataset.nav === 'gate')));
+  if (isCap) { if (pass) { showHelm(); } else { $('#capPass').focus(); } }
+  else { const el = document.getElementById(h); if (el && h !== 'gate') el.scrollIntoView({ block: 'start' }); }
+}
+window.addEventListener('hashchange', route);
+
+// ---------- captain ----------
+let tab = 'gate';
+function lockHelm(err) {
+  pass = null; try { sessionStorage.removeItem('dbr.pass'); } catch {}
+  $('#capDeck').hidden = true; $('#capLock').hidden = false;
+  const e = $('#capErr'); if (err) { e.textContent = err; e.hidden = false; } else e.hidden = true;
+}
+function showHelm() { $('#capLock').hidden = true; $('#capDeck').hidden = false; renderCaptain(); }
+$('#capForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const p = $('#capPass').value; const btn = e.target.querySelector('button'); btn.disabled = true;
+  try {
+    const res = await rpc('captain_verify', { p_pass: p });
+    if (!res.ok) { $('#capErr').textContent = res.error; $('#capErr').hidden = false; }
+    else { pass = p; try { sessionStorage.setItem('dbr.pass', p); } catch {} $('#capPass').value = ''; $('#capErr').hidden = true; showHelm(); }
+  } catch (err) { $('#capErr').textContent = err.message; $('#capErr').hidden = false; }
+  btn.disabled = false;
+});
+$('#capLockBtn').addEventListener('click', () => lockHelm());
+$('.tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]'); if (!b) return;
+  tab = b.dataset.tab; $$('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $$('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== tab);
+  if (tab === 'awards') loadAwards();
+});
+
+function renderCaptain() {
+  if (!S) return;
+  // gate
+  const ses = S.session, open = !!(ses && ses.open);
+  $('#capGatePill').classList.toggle('open', open);
+  $('#capGateText').textContent = open ? 'Open' : 'Closed';
+  $('#capGateMeta').textContent = ses ? ('opened ' + fmtTime(ses.opened_at) + (ses.closed_at ? ', closed ' + fmtTime(ses.closed_at) : '') + ' · ' + ses.count + ' aboard') : 'No voyage today yet.';
+  if (document.activeElement !== $('#workoutInput')) $('#workoutInput').value = (ses && ses.workout) || '';
+  $('#gateHoursTxt').textContent = S.club.gate_hours;
+  const today = S.checkins_today;
+  $('#todayList').innerHTML = today.length ? today.map(c => `<div class="it"><div><div class="n">${esc(c.name)}${c.voided ? ' <span class="tag">voided</span>' : ''}</div><div class="meta">${fmtTime(c.at)} · ${c.method === 'captain' ? 'by captain' : 'scanned'}${c.at_track === true ? ' · at the track' : c.at_track === false ? ' · ' + c.dist_m + ' m away' : ''}</div></div>${c.voided ? '' : `<button class="btn ghost sm" data-void="${c.member_id}">Void</button>`}</div>`).join('') : '<div class="empty">Nobody yet.</div>';
+  const notIn = S.members.filter(m => !m.checked_in_today);
+  $('#capCheckinSel').innerHTML = notIn.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('') || '<option value="">Everyone is aboard</option>';
+  // crew
+  $('#newGroup').innerHTML = '<option value="">No group yet</option>' + S.groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+  renderCrew();
+  // ferry
+  $('#capPool').textContent = S.totals.pile; $('#capHolders').textContent = S.members.filter(m => m.doubloons > 0).length;
+  $('#capOdds').innerHTML = oddsHtml(S.members, 40);
+  if (document.activeElement !== $('#prizeInput')) $('#prizeInput').value = S.club.draw_prize || '';
+  $('#capDraws').innerHTML = S.draws.length ? S.draws.map(d => `<div class="x"><span>${d.undone ? '<s>' : ''}<strong>${esc(d.winner_name)}</strong> · ${esc(d.prize)}${d.undone ? '</s> (undone)' : ''}</span><span class="tiny">${fmtDate(d.at)} · ${d.winner_tickets}/${d.total_tickets}${d.undone ? '' : ` · <button class="link tiny" data-undo="${d.id}">undo</button>`}</span></div>`).join('') : '<div class="empty">No crossings yet.</div>';
+  // settings
+  if (!settingsDirty) {
+    for (const k in S.club.points) { const i = $('#pt_' + k); if (i) i.value = S.club.points[k]; }
+    $('#set_prize').value = S.club.draw_prize || ''; $('#set_gate_hours').value = S.club.gate_hours; $('#set_club').value = S.club.name || ''; $('#set_slogan').value = S.club.slogan || '';
+    $('#set_radius').value = S.club.pin_radius_m;
+    renderGroups(S.groups);
+  }
+  $('#pinStatus').textContent = S.club.pin_set ? 'Pin set. Check-ins within ' + S.club.pin_radius_m + ' m get the “at the track” mark.' : 'No pin set. Check-ins won\'t carry the “at the track” mark until you drop one.';
+  // awards session options
+  const sel = $('#awardSession');
+  const cur = sel.value;
+  sel.innerHTML = S.sessions.map(s => `<option value="${s.id}">${fmtDate(s.id)}${s.workout ? ' · ' + esc(s.workout) : ''} · ${s.count} aboard</option>`).join('') || '<option value="">No voyages yet</option>';
+  if (cur && S.sessions.some(s => s.id === cur)) sel.value = cur;
+  if (tab === 'awards' && !awardsLoadedFor) loadAwards();
+}
+let settingsDirty = false;
+$('[data-pane="settings"]').addEventListener('input', () => settingsDirty = true);
+
+function renderCrew() {
+  const q = $('#crewFilter').value.trim().toLowerCase();
+  const rows = S.members.filter(m => !q || m.name.toLowerCase().includes(q));
+  const gopts = m => '<option value="-1">No group</option>' + S.groups.map(g => `<option value="${g.id}" ${g.id === m.group_id ? 'selected' : ''}>${esc(g.name)}</option>`).join('');
+  $('#crewList').innerHTML = rows.map(m => `<div class="it" data-m="${m.id}" style="grid-template-columns:1fr">
+    <div class="row" style="justify-content:space-between"><div><div class="n">${esc(m.name)}</div><div class="meta">${m.doubloons} doubloons · ${m.lifetime} lifetime · streak ${m.streak}${m.last_seen ? ' · last ' + fmtDate(m.last_seen) : ''}</div></div>
+      <select data-grp style="width:auto">${gopts(m)}</select></div>
+    <div class="row">
+      <button class="btn sm" data-act="promotion">Promote +${S.club.points.promotion}</button>
+      <button class="btn ghost sm" data-act="recruit">Recruit +${S.club.points.recruit}</button>
+      <button class="btn ghost sm" data-act="adjust">Adjust ±</button>
+      <button class="btn ghost sm" data-act="rename">Rename</button>
+      <button class="btn ghost sm" data-act="remove">Remove</button>
+    </div>
+    <div class="stack" data-sub hidden></div>
+  </div>`).join('') || '<div class="empty">No runners match.</div>';
+}
+$('#crewFilter').addEventListener('input', renderCrew);
+$('#crewList').addEventListener('change', async e => {
+  const sel = e.target.closest('select[data-grp]'); if (!sel) return;
+  const id = sel.closest('[data-m]').dataset.m;
+  await act(() => cap('captain_member', { p_member: id, p_group_id: +sel.value }), 'Group changed.');
+});
+$('#crewList').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const it = b.closest('[data-m]'); const id = it.dataset.m; const m = S.members.find(x => x.id === id); const sub = $('[data-sub]', it);
+  const a = b.dataset.act;
+  if (a === 'promotion') {
+    const faster = S.groups.filter(g => !m.group_id || g.rank < (S.groups.find(x => x.id === m.group_id) || { rank: 99 }).rank);
+    sub.hidden = false; sub.innerHTML = `<p class="note">Move ${esc(m.name)} up to a faster boat and pay the promotion bonus.</p>
+      <div class="row"><select data-to style="flex:1">${faster.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('') || '<option value="">Already in the fastest boat</option>'}</select><button class="btn sm" data-go>Promote +${S.club.points.promotion}</button><button class="btn ghost sm" data-cancel>Cancel</button></div>`;
+    $('[data-go]', sub).addEventListener('click', () => act(() => cap('captain_bonus', { p_member: id, p_kind: 'promotion', p_group_id: $('[data-to]', sub).value ? +$('[data-to]', sub).value : null, p_note: 'promoted' }), m.name + ' moved up.'));
+  } else if (a === 'recruit') {
+    sub.hidden = false; sub.innerHTML = `<p class="note">${esc(m.name)} brought someone who came back a second time?</p><div class="row"><input type="text" data-note placeholder="Who did they bring?" style="flex:1"><button class="btn sm" data-go>Pay +${S.club.points.recruit}</button><button class="btn ghost sm" data-cancel>Cancel</button></div>`;
+    $('[data-go]', sub).addEventListener('click', () => act(() => cap('captain_bonus', { p_member: id, p_kind: 'recruit', p_note: $('[data-note]', sub).value || null }), 'Recruit bonus paid.'));
+  } else if (a === 'adjust') {
+    sub.hidden = false; sub.innerHTML = `<div class="row"><input type="number" data-amt value="1" style="width:90px"><input type="text" data-note placeholder="Why (goes in the log)" style="flex:1"><button class="btn sm" data-go>Apply</button><button class="btn ghost sm" data-cancel>Cancel</button></div>`;
+    $('[data-go]', sub).addEventListener('click', () => act(() => cap('captain_bonus', { p_member: id, p_kind: 'adjust', p_amount: +$('[data-amt]', sub).value || 0, p_note: $('[data-note]', sub).value || null }), 'Adjusted.'));
+  } else if (a === 'rename') {
+    sub.hidden = false; sub.innerHTML = `<div class="row"><input type="text" data-name value="${esc(m.name)}" style="flex:1"><button class="btn sm" data-go>Save</button><button class="btn ghost sm" data-cancel>Cancel</button></div>`;
+    $('[data-go]', sub).addEventListener('click', () => act(() => cap('captain_member', { p_member: id, p_name: $('[data-name]', sub).value }), 'Renamed.'));
+  } else if (a === 'remove') {
+    sub.hidden = false; sub.innerHTML = `<p class="note">Remove ${esc(m.name)} from the crew? Their ledger lines go with them.</p><div class="row"><button class="btn blood sm" data-go>Remove</button><button class="btn ghost sm" data-cancel>Cancel</button></div>`;
+    $('[data-go]', sub).addEventListener('click', () => act(() => cap('captain_delete_member', { p_member: id }), m.name + ' removed.'));
+  }
+  const c = $('[data-cancel]', sub); if (c) c.addEventListener('click', () => { sub.hidden = true; sub.innerHTML = ''; });
+});
+$('#addMemberBtn').addEventListener('click', () => act(() => cap('captain_member', { p_name: $('#newName').value, p_group_id: $('#newGroup').value ? +$('#newGroup').value : null }), 'Added to the crew.', () => { $('#newName').value = ''; }));
+
+async function act(fn, okText, after) {
+  try {
+    const res = await fn();
+    if (res && res.ok === false) { toast(res.error, true); return res; }
+    if (after) after(res);
+    await refresh();
+    if (okText) toast(okText);
+    return res;
+  } catch (e) { toast(e.message, true); }
+}
+
+// gate actions
+$('#openGateBtn').addEventListener('click', () => act(() => cap('captain_gate', { p_action: 'open', p_workout: $('#workoutInput').value }), 'The gate is open.'));
+$('#closeGateBtn').addEventListener('click', () => act(() => cap('captain_gate', { p_action: 'close' }), 'The gate is closed.'));
+$('#saveWorkoutBtn').addEventListener('click', () => act(() => cap('captain_gate', { p_action: 'workout', p_workout: $('#workoutInput').value }), 'Saved.'));
+$('#todayList').addEventListener('click', e => {
+  const b = e.target.closest('button[data-void]'); if (!b) return;
+  act(() => cap('captain_void_checkin', { p_session: S.today, p_member: b.dataset.void }), 'Check-in voided.');
+});
+$('#capCheckinBtn').addEventListener('click', () => { const id = $('#capCheckinSel').value; if (id) act(() => cap('captain_check_in', { p_member: id }), 'Checked in.'); });
+
+// awards
+let awardsLoadedFor = null;
+async function loadAwards() {
+  const sid = $('#awardSession').value; if (!sid) { $('#awardList').innerHTML = '<div class="empty">No voyages yet.</div>'; return; }
+  try {
+    const d = await rpc('session_detail', { p_session: sid });
+    awardsLoadedFor = sid;
+    const rows = d.checkins.filter(c => !c.voided);
+    $('#awardList').innerHTML = rows.length ? rows.map(c => `<div class="it" data-aw="${c.member_id}" style="grid-template-columns:1fr">
+      <div class="n">${esc(c.name)} <span class="meta">${fmtTime(c.at)}</span></div>
+      <div class="row">${['finish', 'splits', 'reaper'].map(k => `<label class="chk ${c.awards.includes(k) ? 'on' : ''}"><input type="checkbox" data-k="${k}" ${c.awards.includes(k) ? 'checked' : ''}>${k === 'reaper' ? 'Outran the Reaper' : k}</label>`).join('')}</div>
+    </div>`).join('') : '<div class="empty">Nobody aboard for this voyage.</div>';
+  } catch (e) { toast(e.message, true); }
+}
+$('#awardSession').addEventListener('change', loadAwards);
+$('#awardList').addEventListener('change', e => { const l = e.target.closest('label.chk'); if (l) l.classList.toggle('on', e.target.checked); });
+$('#allFinishBtn').addEventListener('click', () => { $$('#awardList input[data-k="finish"]').forEach(i => { i.checked = true; i.closest('label').classList.add('on'); }); });
+$('#saveAwardsBtn').addEventListener('click', () => {
+  const sid = $('#awardSession').value; if (!sid) return;
+  const awards = $$('#awardList [data-aw]').map(it => ({ member_id: it.dataset.aw, kinds: $$('input:checked', it).map(i => i.dataset.k) }));
+  act(() => cap('captain_award', { p_session: sid, p_awards: awards }), 'Awards saved.', () => loadAwards());
+});
+
+// ferryman
+$('#drawBtn').addEventListener('click', () => { $('#drawConfirm').hidden = false; $('#drawBtn').hidden = true; $('#drawResult').hidden = true; });
+$('#drawNoBtn').addEventListener('click', () => { $('#drawConfirm').hidden = true; $('#drawBtn').hidden = false; });
+$('#drawGoBtn').addEventListener('click', async () => {
+  $('#drawConfirm').hidden = true; $('#drawAnim').hidden = false;
+  const names = S.members.filter(m => m.doubloons > 0).map(m => m.name);
+  let i = 0; const spin = setInterval(() => { $('#spinName').textContent = names.length ? names[i++ % names.length] : '…'; }, 90);
+  const started = Date.now();
+  try {
+    const res = await cap('captain_draw', { p_prize: $('#prizeInput').value });
+    const wait = Math.max(0, 2600 - (Date.now() - started));
+    await new Promise(r => setTimeout(r, wait));
+    clearInterval(spin); $('#drawAnim').hidden = true;
+    if (!res.ok) { toast(res.error, true); $('#drawBtn').hidden = false; return; }
+    const d = res.draw;
+    $('#drawResult').hidden = false;
+    $('#drawResult').innerHTML = `<div class="eyebrow">The Ferryman calls</div><div class="nm">${esc(d.winner_name)}</div><p>crosses over with <strong>${esc(d.prize)}</strong>.<br><span class="tiny">${d.winner_tickets} of ${d.total_tickets} tickets. Their pile returns to the river.</span></p>`;
+    coinBurst(4);
+    $('#drawBtn').hidden = false;
+    await refresh();
+  } catch (e) { clearInterval(spin); $('#drawAnim').hidden = true; $('#drawBtn').hidden = false; toast(e.message, true); }
+});
+$('#capDraws').addEventListener('click', e => { const b = e.target.closest('button[data-undo]'); if (!b) return; act(() => cap('captain_undo_draw', { p_draw_id: +b.dataset.undo }), 'Crossing undone. Pile restored.'); });
+
+// settings
+$('#saveSettingsBtn').addEventListener('click', () => {
+  const points = {}; ['checkin', 'finish', 'splits', 'reaper', 'promotion', 'recruit'].forEach(k => { const v = parseInt($('#pt_' + k).value, 10); if (!isNaN(v)) points[k] = v; });
+  act(() => cap('captain_settings', { p_patch: { points, draw_prize: $('#set_prize').value, gate_hours: +$('#set_gate_hours').value || 3, club_name: $('#set_club').value, slogan: $('#set_slogan').value, pin_radius_m: +$('#set_radius').value || 300 } }), 'Settings saved.', () => settingsDirty = false);
+});
+function renderGroups(groups) {
+  $('#groupList').innerHTML = groups.map(g => groupRow(g)).join('');
+}
+function groupRow(g) {
+  return `<div class="it" data-g="${g.id || ''}" style="grid-template-columns:1fr"><div class="grid3">
+    <label class="f">Name<input type="text" data-gn value="${esc(g.name || '')}"></label>
+    <label class="f">400 split (s)<input type="number" data-gs value="${g.split_seconds || ''}" min="40" max="200"></label>
+    <label class="f">Reaper (captain)<input type="text" data-gc value="${esc(g.captain || '')}"></label>
+    <label class="f">Rank<input type="number" data-gr value="${g.rank || 1}" min="1" max="20"></label>
+    <label class="chk" style="align-self:end"><input type="checkbox" data-ga ${g.active === false ? '' : 'checked'}>Active</label>
+  </div></div>`;
+}
+$('#addGroupBtn').addEventListener('click', () => { settingsDirty = true; $('#groupList').insertAdjacentHTML('beforeend', groupRow({ name: '', rank: S.groups.length + 1, active: true })); });
+$('#saveGroupsBtn').addEventListener('click', () => {
+  const groups = $$('#groupList [data-g]').map(it => ({ id: it.dataset.g ? +it.dataset.g : undefined, name: $('[data-gn]', it).value, split_seconds: $('[data-gs]', it).value ? +$('[data-gs]', it).value : null, captain: $('[data-gc]', it).value, rank: +$('[data-gr]', it).value || 1, active: $('[data-ga]', it).checked }));
+  act(() => cap('captain_groups', { p_groups: groups }), 'Groups saved.', () => settingsDirty = false);
+});
+$('#dropPinBtn').addEventListener('click', () => {
+  if (!navigator.geolocation) return toast('This phone will not share its location.', true);
+  $('#dropPinBtn').disabled = true;
+  navigator.geolocation.getCurrentPosition(p => {
+    act(() => cap('captain_settings', { p_patch: { pin_lat: p.coords.latitude, pin_lng: p.coords.longitude } }), 'Anchor dropped (±' + Math.round(p.coords.accuracy) + ' m).').finally(() => $('#dropPinBtn').disabled = false);
+  }, () => { $('#dropPinBtn').disabled = false; toast('Could not read your location. Allow it for this page and try again.', true); }, { enableHighAccuracy: true, timeout: 10000 });
+});
+$('#clearPinBtn').addEventListener('click', () => act(() => cap('captain_settings', { p_patch: { pin_lat: null, pin_lng: null } }), 'Pin cleared.'));
+$('#savePassBtn').addEventListener('click', () => {
+  const a = $('#newPass').value, b = $('#newPass2').value;
+  if (a !== b) return toast('The two passphrases do not match.', true);
+  act(() => cap('captain_passphrase', { p_new: a }), 'Passphrase changed.', () => { pass = a; try { sessionStorage.setItem('dbr.pass', a); } catch {} $('#newPass').value = ''; $('#newPass2').value = ''; });
+});
+$('#copyLinkBtn').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(PUBLIC_URL); toast('Link copied.'); }
+  catch { const r = document.createRange(); r.selectNodeContents($('#qrUrl')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Select and copy the link above.'); }
+});
+$('#bigQrBtn').addEventListener('click', () => { $('#bigQrSvg').innerHTML = $('#qrbox svg').outerHTML; $('#bigQr').hidden = false; });
+$('#bigQrClose').addEventListener('click', () => $('#bigQr').hidden = true);
+$('#recountBtn').addEventListener('click', () => act(() => cap('captain_recount'), 'Totals recounted from the ledger.'));
+$('#exportBtn').addEventListener('click', async () => {
+  try {
+    const res = await cap('captain_export'); if (!res.ok) return toast(res.error, true);
+    const csv = (rows, cols) => [cols.join(',')].concat(rows.map(r => cols.map(c => { const v = r[c] == null ? '' : String(typeof r[c] === 'object' ? JSON.stringify(r[c]) : r[c]); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','))).join('\n');
+    const parts = [
+      '# members', csv(res.members, ['id', 'name', 'group_id', 'doubloons', 'lifetime', 'joined_at', 'last_seen', 'active']),
+      '', '# checkins', csv(res.checkins, ['session_id', 'name', 'member_id', 'at', 'method', 'at_track', 'dist_m', 'voided']),
+      '', '# ledger', csv(res.ledger, ['id', 'name', 'member_id', 'session_id', 'kind', 'amount', 'note', 'by_captain', 'voided', 'at']),
+      '', '# draws', csv(res.draws, ['id', 'at', 'prize', 'winner_name', 'winner_tickets', 'total_tickets', 'undone']),
+    ].join('\n');
+    const blob = new Blob([parts], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'death-by-running-ledger-' + S.today + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) { toast(e.message, true); }
+});
+
+// ---------- toast ----------
+let toastTimer;
+function toast(text, bad) {
+  let t = $('.toast'); if (!t) { t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+  t.textContent = text; t.classList.toggle('bad', !!bad); t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, bad ? 6000 : 3200);
+}
+
+// ---------- boot ----------
+route();
+refresh().then(() => { if (location.hash === '#captain' && pass) showHelm(); });
+schedulePoll();
+})();
+</script>
+</body>
+</html>
