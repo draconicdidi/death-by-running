@@ -5,8 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Ferryman's Ledger</title>
 <meta name="description" content="Death By Running — check in, count your doubloons, pay the Ferryman.">
-<meta name="theme-color" content="#0c0a07">
 <link rel="icon" id="favicon" href="data:,">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0c0a07" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#efe3c4" media="(prefers-color-scheme: light)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DBR">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Cinzel:wght@500;700&display=swap">
@@ -199,6 +207,16 @@ footer{margin-top:40px; text-align:center; color:var(--fg-mute); font-size:.9rem
 footer .hl{font-family:var(--font-sc); letter-spacing:.3em; text-transform:uppercase; color:var(--blood-2)}
 @media (prefers-reduced-motion: reduce){ .pill.open .dot,.lantern,.burst .c{animation:none} .burst{display:none} }
 [hidden]{display:none !important}
+
+/* installed-app mode: keep content clear of the notch / status bar, kill rubber-band on the shell */
+@media (display-mode: standalone){
+  body{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+  .topbar{padding-top:10px}
+}
+.installbar{display:flex; align-items:center; gap:12px; margin:10px 0 4px; padding:10px 12px; border:1px dashed var(--gold-dim); border-radius:6px; background:color-mix(in srgb, var(--plank) 85%, transparent); font-size:.9rem; color:var(--fg-dim)}
+.installbar b{color:var(--gold-2); font-family:var(--font-display,inherit); font-weight:500; letter-spacing:.02em}
+.installbar .x{margin-left:auto; background:none; border:0; color:var(--fg-mute); font-size:1.1rem; cursor:pointer; padding:4px 6px}
+.installbar .go{border:1px solid var(--gold); color:var(--gold-2); background:none; border-radius:4px; padding:6px 10px; font:inherit; cursor:pointer; white-space:nowrap}
 </style>
 </head>
 <body>
@@ -234,6 +252,12 @@ footer .hl{font-family:var(--font-sc); letter-spacing:.3em; text-transform:upper
     <a href="/">Home</a>
     <a href="/merch.html">Merch</a>
   </nav>
+  <div class="installbar" id="installBar" hidden>
+    <b>Keep the ledger on your phone.</b>
+    <span class="how"></span>
+    <button class="go" hidden>Install</button>
+    <button class="x" aria-label="Dismiss">&times;</button>
+  </div>
 
   <!-- ============ HOME ============ -->
   <main id="home">
@@ -915,6 +939,41 @@ function toast(text, bad) {
 route();
 refresh().then(() => { if (location.hash === '#captain' && pass) showHelm(); });
 schedulePoll();
+})();
+</script>
+<script>
+// ---------- installable app ----------
+(function(){
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) nw.postMessage('skipWaiting'); });
+      });
+    }).catch(() => {});
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
+  }
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const bar = document.getElementById('installBar');
+  if (!bar || standalone) return;
+  let dismissed = false; try { dismissed = localStorage.getItem('dbr.installDismissed') === '1'; } catch {}
+  if (dismissed) return;
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isMobile = isIOS || /Android/.test(ua);
+  if (!isMobile) return;
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; show(); });
+  function show(){
+    const go = bar.querySelector('.go'), how = bar.querySelector('.how');
+    if (deferred) { go.hidden = false; how.hidden = true; go.onclick = async () => { deferred.prompt(); await deferred.userChoice; hide(); }; }
+    else { go.hidden = true; how.hidden = false; how.textContent = isIOS ? 'Tap Share, then "Add to Home Screen".' : 'Open the browser menu and choose "Add to Home screen".'; }
+    bar.hidden = false;
+  }
+  function hide(){ bar.hidden = true; try { localStorage.setItem('dbr.installDismissed','1'); } catch {} }
+  bar.querySelector('.x').addEventListener('click', hide);
+  if (isIOS) show();
 })();
 </script>
 </body>

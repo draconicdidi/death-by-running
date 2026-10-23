@@ -1,0 +1,25 @@
+{
+  "name": "Death By Running — The Ferryman's Ledger",
+  "short_name": "DBR",
+  "description": "Check in at the gate, count your doubloons, pay the Ferryman. Fridays 6:30 AM, Yellowjacket Stadium.",
+  "id": "/ledger.html",
+  "start_url": "/ledger.html?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0a07",
+  "theme_color": "#0c0a07",
+  "lang": "en-US",
+  "categories": ["sports", "health", "lifestyle"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "The Gate", "short_name": "Gate", "url": "/ledger.html?source=pwa#gate", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Leaderboard", "short_name": "Board", "url": "/ledger.html?source=pwa#board", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Captain's helm", "short_name": "Captain", "url": "/ledger.html?source=pwa#captain", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Up for grabs", "short_name": "Merch", "url": "/merch.html?source=pwa", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
